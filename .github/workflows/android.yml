@@ -18,14 +18,34 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Instalar ferramentas
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Extrair projeto
+        run: |
+          ZIP_FILE=$(find . -maxdepth 2 -type f -iname '*.zip' | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "Nenhum ZIP encontrado no repositorio."
+            exit 1
+          fi
+          mkdir -p extracted
+          unzip -q "$ZIP_FILE" -d extracted
+          SETTINGS=$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)
+          if [ -z "$SETTINGS" ]; then
+            echo "Nao encontrei settings.gradle dentro do ZIP."
+            exit 1
+          fi
+          echo "PROJECT_DIR=$(dirname "$SETTINGS")" >> "$GITHUB_ENV"
+
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Gerar APK
-        run: gradle assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Salvar APK
         uses: actions/upload-artifact@v4
         with:
           name: BombaPatchAndroid-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: extracted/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
