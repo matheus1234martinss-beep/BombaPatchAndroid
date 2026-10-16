@@ -23,7 +23,7 @@ jobs:
 
       - name: Extrair projeto
         run: |
-          ZIP_FILE=$(find . -maxdepth 2 -type f -iname '*.zip' | head -n 1)
+          ZIP_FILE="./BombaPatchAndroid_atualizado.zip"
           if [ -z "$ZIP_FILE" ]; then
             echo "Nenhum ZIP encontrado no repositorio."
             exit 1
